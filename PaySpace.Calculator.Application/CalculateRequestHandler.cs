@@ -3,9 +3,9 @@ using PaySpace.Calculator.Application.Abstractions;
 using System.Net;
 using FluentValidation;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace PaySpace.Calculator.Application;
-
 public sealed class CalculateRequestValidator : AbstractValidator<CalculateRequest>
 {
     public CalculateRequestValidator(IPostalCodeService postalCodeService)
