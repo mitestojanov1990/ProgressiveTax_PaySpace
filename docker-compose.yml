@@ -1,0 +1,48 @@
+version: '3.4'
+
+services:
+  payspace-calculator-api:
+    image: payspace-calculator-api
+    build:
+      context: .
+      dockerfile: PaySpace.Calculator.API/Dockerfile
+    ports:
+      - "5104:80"
+      - "7119:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=!v3rys3cur3d
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp1.pfx
+      - OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - OTEL_SERVICE_NAME=PaySpace.Calculator.API
+    depends_on:
+      - zipkin
+    volumes:
+      - ./aspnetapp1.pfx:/https/aspnetapp1.pfx:ro
+      - ./keys:/keys
+
+  payspace-calculator-web:
+    image: payspace-calculator-web
+    build:
+      context: .
+      dockerfile: PaySpace.Calculator.Web/Dockerfile
+    ports:
+      - "5255:80"
+      - "7210:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - CalculatorSettings__ApiUrl=https://payspace-calculator-api:443/
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=!v3rys3cur3d
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp2.pfx
+    depends_on:
+      - payspace-calculator-api
+    volumes:
+      - ./aspnetapp2.pfx:/https/aspnetapp2.pfx:ro
+      - ./keys:/keys
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"

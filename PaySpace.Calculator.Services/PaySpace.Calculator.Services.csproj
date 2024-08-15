@@ -13,7 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\PaySpace.Calculator.Data\PaySpace.Calculator.Data.csproj" />
+      <ProjectReference Include="..\PaySpace.Calculator.Application\PaySpace.Calculator.Application.csproj" />
+      <ProjectReference Include="..\PaySpace.Calculator.Infrastructure\PaySpace.Calculator.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

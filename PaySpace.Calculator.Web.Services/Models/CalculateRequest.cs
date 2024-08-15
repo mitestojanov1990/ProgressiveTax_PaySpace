@@ -1,9 +1,8 @@
-﻿namespace PaySpace.Calculator.Web.Services.Models
-{
-    public sealed class CalculateRequest
-    {
-        public string? PostalCode { get; set; }
+﻿namespace PaySpace.Calculator.Web.Services.Models;
 
-        public decimal Income { get; set; }
-    }
+public sealed record CalculateRequest
+{
+    public string? PostalCode { get; set; }
+
+    public decimal Income { get; set; }
 }

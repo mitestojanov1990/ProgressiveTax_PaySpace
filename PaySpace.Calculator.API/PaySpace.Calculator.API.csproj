@@ -9,13 +9,32 @@
 
     <ItemGroup>
         <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+        <PackageReference Include="Mediator.Abstractions" Version="2.1.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.0" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
+        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.9.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.Zipkin" Version="1.9.0" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+        <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+        <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\PaySpace.Calculator.Application\PaySpace.Calculator.Application.csproj" />
+      <ProjectReference Include="..\PaySpace.Calculator.Infrastructure\PaySpace.Calculator.Infrastructure.csproj" />
+      <ProjectReference Include="..\PaySpace.Calculator.Migrator\PaySpace.Calculator.Migrator.csproj" />
       <ProjectReference Include="..\PaySpace.Calculator.Services\PaySpace.Calculator.Services.csproj" />
-        <ProjectReference Include="..\PaySpace.Calculator.Data\PaySpace.Calculator.Data.csproj" />
     </ItemGroup>
 
     <ItemGroup>

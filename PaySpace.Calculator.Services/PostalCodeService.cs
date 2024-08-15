@@ -1,26 +1,40 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using PaySpace.Calculator.Application;
+using PaySpace.Calculator.Application.Abstractions;
+using PaySpace.Calculator.Infrastructure.Persistence;
+using PaySpace.Calculator.Services.Exceptions;
 
-using PaySpace.Calculator.Data;
-using PaySpace.Calculator.Data.Models;
-using PaySpace.Calculator.Services.Abstractions;
+namespace PaySpace.Calculator.Services;
 
-namespace PaySpace.Calculator.Services
+public sealed class PostalCodeService : IPostalCodeService
 {
-    internal sealed class PostalCodeService(CalculatorContext context, IMemoryCache memoryCache) : IPostalCodeService
+    private readonly CalculatorContext _dbContext;
+    private readonly IMemoryCache _memoryCache;
+    public PostalCodeService(CalculatorContext dbContext, IMemoryCache memoryCache)
     {
-        public Task<List<PostalCode>> GetPostalCodesAsync()
+        _dbContext = dbContext;
+        _memoryCache = memoryCache;
+    }
+    public async Task<List<PostalCodeDto>> GetPostalCodesAsync(CancellationToken cancellationToken)
+    {
+        return await _memoryCache.GetOrCreateAsync("PostalCodes", _ => _dbContext.PostalCodes.AsNoTracking().Select(x => x.Adapt<PostalCodeDto>()).ToListAsync())!;
+    }
+
+    public async Task<PostalCodeDto> CalculatorTypeAsync(string code, CancellationToken cancellationToken)
+    {
+        var postalCodes = await this.GetPostalCodesAsync(cancellationToken);
+
+        var postalCode = postalCodes.FirstOrDefault(pc => pc.Code == code);
+        if (postalCode == null)
         {
-            return memoryCache.GetOrCreateAsync("PostalCodes", _ => context.Set<PostalCode>().AsNoTracking().ToListAsync())!;
+            throw new CalculatorException();
         }
-
-        public async Task<CalculatorType?> CalculatorTypeAsync(string code)
-        {
-            var postalCodes = await this.GetPostalCodesAsync();
-
-            var postalCode = postalCodes.FirstOrDefault(pc => pc.Code == code);
-
-            return postalCode?.Calculator;
-        }
+        return postalCode;
+    }
+    public async Task<bool> CalculatorExistsForCode(string? code)
+    {
+        return await _dbContext.PostalCodes.FirstOrDefaultAsync(x => x.Code == code) != null ? true : false;
     }
 }

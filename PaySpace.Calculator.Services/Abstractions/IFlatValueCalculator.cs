@@ -1,6 +1,5 @@
-﻿namespace PaySpace.Calculator.Services.Abstractions
+﻿namespace PaySpace.Calculator.Services.Abstractions;
+
+public interface IFlatValueCalculator
 {
-    public interface IFlatValueCalculator
-    {
-    }
 }

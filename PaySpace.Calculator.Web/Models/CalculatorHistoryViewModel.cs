@@ -1,9 +1,8 @@
 using PaySpace.Calculator.Web.Services.Models;
 
-namespace PaySpace.Calculator.Web.Models
+namespace PaySpace.Calculator.Web.Models;
+
+public sealed record CalculatorHistoryViewModel
 {
-    public sealed class CalculatorHistoryViewModel
-    {
-        public List<CalculatorHistory>? CalculatorHistory { get; set; }
-    }
+    public List<CalculatorHistoryDto>? CalculatorHistory { get; set; }
 }

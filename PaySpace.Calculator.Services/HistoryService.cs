@@ -1,26 +1,27 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
+using PaySpace.Calculator.Application;
+using PaySpace.Calculator.Application.Abstractions;
+using PaySpace.Calculator.Domain;
+using PaySpace.Calculator.Domain.Enum;
+using PaySpace.Calculator.Infrastructure.Persistence;
 
-using PaySpace.Calculator.Data;
-using PaySpace.Calculator.Data.Models;
-using PaySpace.Calculator.Services.Abstractions;
+namespace PaySpace.Calculator.Services;
 
-namespace PaySpace.Calculator.Services
+public sealed class HistoryService : IHistoryService
 {
-    internal sealed class HistoryService(CalculatorContext context) : IHistoryService
+    private readonly CalculatorContext _dbContext;
+    public HistoryService(CalculatorContext dbContext)
     {
-        public async Task AddAsync(CalculatorHistory history)
-        {
-            history.Timestamp = DateTime.Now;
-
-            await context.AddAsync(history);
-            await context.SaveChangesAsync();
-        }
-
-        public Task<List<CalculatorHistory>> GetHistoryAsync()
-        {
-            return context.Set<CalculatorHistory>()
-                .OrderByDescending(_ => _.Timestamp)
-                .ToListAsync();
-        }
+        _dbContext = dbContext;
     }
+    public async Task AddAsync(CalculatorHistoryDto history, CancellationToken cancellationToken)
+    {
+        var calculatorType = (CalculatorType)Enum.Parse(typeof(CalculatorType), history.Calculator);
+        var calculatorHistory = new CalculatorHistory(history.PostalCode, history.Income, history.Tax, calculatorType);
+        await _dbContext.AddAsync(calculatorHistory, cancellationToken);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<CalculatorHistoryDto>> GetHistoryAsync(CancellationToken cancellationToken) => await _dbContext.CalculatorHistories.OrderByDescending(x => x.Timestamp).Select(x => x.Adapt<CalculatorHistoryDto>()).ToListAsync(cancellationToken);
 }

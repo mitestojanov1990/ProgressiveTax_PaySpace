@@ -1,13 +1,17 @@
-﻿using PaySpace.Calculator.Services.Abstractions;
-using PaySpace.Calculator.Services.Models;
+﻿using PaySpace.Calculator.Application;
+using PaySpace.Calculator.Domain.Enum;
+using PaySpace.Calculator.Services.Abstractions;
+using PaySpace.Calculator.Application.DTO;
 
-namespace PaySpace.Calculator.Services.Calculators
+namespace PaySpace.Calculator.Services.Calculators;
+
+internal sealed class FlatRateCalculator : ICalculatorStrategy
 {
-    internal sealed class FlatRateCalculator : IFlatRateCalculator
+    public CalculatorType CalculatorType => CalculatorType.FlatRate;
+
+    public Task<CalculateResultDto> CalculateAsync(decimal income, List<CalculatorSettingDto> settings)
     {
-        public Task<CalculateResult> CalculateAsync(decimal income)
-        {
-            throw new NotImplementedException();
-        }
+        var tax = income * 0.175M;
+        return Task.FromResult(new CalculateResultDto(CalculatorType.ToString(), tax));
     }
 }

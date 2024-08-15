@@ -1,9 +1,8 @@
-namespace PaySpace.Calculator.Web.Models
-{
-    public sealed class ErrorViewModel
-    {
-        public string? RequestId { get; set; }
+namespace PaySpace.Calculator.Web.Models;
 
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-    }
+public sealed record ErrorViewModel
+{
+    public string? RequestId { get; set; }
+
+    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 }

@@ -5,62 +5,102 @@ using PaySpace.Calculator.Web.Models;
 using PaySpace.Calculator.Web.Services.Abstractions;
 using PaySpace.Calculator.Web.Services.Models;
 
-namespace PaySpace.Calculator.Web.Controllers
+namespace PaySpace.Calculator.Web.Controllers;
+
+public sealed class CalculatorController : Controller
 {
-    public class CalculatorController(ICalculatorHttpService calculatorHttpService) : Controller
+    private readonly ICalculatorService _calculatorService;
+    private readonly IPostalCodeService _postalCodeService;
+    private readonly IHistoryService _historyService;
+    private readonly ISessionManager _sessionManager;
+
+    public CalculatorController(
+        ICalculatorService calculatorService,
+        IPostalCodeService postalCodeService,
+        IHistoryService historyService,
+        ISessionManager sessionManager)
     {
-        public IActionResult Index()
-        {
-            var vm = this.GetCalculatorViewModelAsync();
+        _calculatorService = calculatorService;
+        _postalCodeService = postalCodeService;
+        _historyService = historyService;
+        _sessionManager = sessionManager;
+    }
 
-            return this.View(vm);
+    public async Task<IActionResult> Index()
+    {
+        if (!IsUserAuthenticated())
+        {
+            return RedirectToAction("Login", "Auth");
         }
+        var vm = await this.GetCalculatorViewModelAsync();
+        return this.View(vm);
+    }
 
-        public async Task<IActionResult> History()
+    public async Task<IActionResult> History()
+    {
+        if (!IsUserAuthenticated())
         {
-            return this.View(new CalculatorHistoryViewModel
-            {
-                CalculatorHistory = await calculatorHttpService.GetHistoryAsync()
-            });
+            return RedirectToAction("Login", "Auth");
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken()]
-        public async Task<IActionResult> Index(CalculateRequestViewModel request)
+        return this.View(new CalculatorHistoryViewModel
         {
-            if (this.ModelState.IsValid)
-            {
-                try
-                {
-                    await calculatorHttpService.CalculateTaxAsync(new CalculateRequest
-                    {
-                        PostalCode = request.PostalCode,
-                        Income = request.Income
-                    });
+            CalculatorHistory = await _historyService.GetHistoryAsync()
+        });
+    }
 
-                    return this.RedirectToAction(nameof(this.History));
-                }
-                catch (Exception e)
+    [HttpPost]
+    [ValidateAntiForgeryToken()]
+    public async Task<IActionResult> Index(CalculateRequestViewModel request)
+    {
+        if (!IsUserAuthenticated())
+        {
+            return RedirectToAction("Login", "Auth");
+        }
+        if (this.ModelState.IsValid)
+        {
+            try
+            {
+                await _calculatorService.CalculateTaxAsync(new CalculateRequest
                 {
-                    this.ModelState.AddModelError(string.Empty, e.Message);
-                }
+                    PostalCode = request.PostalCode,
+                    Income = request.Income
+                });
+
+                return this.RedirectToAction(nameof(this.History));
             }
-
-            var vm = await this.GetCalculatorViewModelAsync(request);
-
-            return this.View(vm);
-        }
-
-        private async Task<CalculatorViewModel> GetCalculatorViewModelAsync(CalculateRequestViewModel? request = null)
-        {
-            var postalCodes = await calculatorHttpService.GetPostalCodesAsync();
-
-            return new CalculatorViewModel
+            catch (Exception e)
             {
-                PostalCodes = postalCodes,
-                Income = request.Income,
-                PostalCode = request.PostalCode ?? string.Empty
-            };
+                this.ModelState.AddModelError(string.Empty, e.Message);
+            }
         }
+
+        var vm = await this.GetCalculatorViewModelAsync(request);
+
+        return this.View(vm);
+    }
+
+    private async Task<CalculatorViewModel> GetCalculatorViewModelAsync(CalculateRequestViewModel? request = null)
+    {
+        var postalCodes = await _postalCodeService.GetPostalCodesAsync();
+        var selectList = new SelectList(postalCodes, "Code", "Code");
+        var viewModel = new CalculatorViewModel
+        {
+            PostalCodes = selectList,
+            Income = 0,
+            PostalCode = string.Empty
+        };
+
+        if (request == null)
+        {
+            return viewModel;
+        }
+
+        viewModel.Income = request.Income;
+        viewModel.PostalCode = request.PostalCode ?? string.Empty;
+        return viewModel;
+    }
+    private bool IsUserAuthenticated()
+    {
+        return _sessionManager.GetToken() != null;
     }
 }

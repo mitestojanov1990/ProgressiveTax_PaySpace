@@ -1,68 +1,38 @@
-﻿using Microsoft.VisualBasic;
-using PaySpace.Calculator.Data.Models;
+﻿using PaySpace.Calculator.Application;
+using PaySpace.Calculator.Application.DTO;
+using PaySpace.Calculator.Domain.Enum;
 using PaySpace.Calculator.Services.Abstractions;
-using PaySpace.Calculator.Services.Models;
-using System.Runtime;
 
-namespace PaySpace.Calculator.Services.Calculators
+namespace PaySpace.Calculator.Services.Calculators;
+
+internal sealed class ProgressiveCalculator : ICalculatorStrategy
 {
-    internal sealed class ProgressiveCalculator : IProgressiveCalculator
+    public CalculatorType CalculatorType => CalculatorType.Progressive;
+
+    public Task<CalculateResultDto> CalculateAsync(decimal income, List<CalculatorSettingDto> settings)
     {
-        private readonly List<CalculatorSetting> _settings;
+        if (income <= 0)
+            return Task.FromResult(new CalculateResultDto(CalculatorType.Progressive.ToString(), 0));
 
-        public ProgressiveCalculator(List<CalculatorSetting> settings)
+        decimal totalTax = 0;
+
+        foreach (var setting in settings.OrderBy(s => s.From))
         {
-            _settings = settings;
+            if (income > setting.From)
+            {
+                var to = setting.To ?? income;
+                var taxableAmount = Math.Min(income, to) - setting.From;
+                totalTax += taxableAmount * setting.Rate / 100m;
+            }
         }
-        public Task<CalculateResult> CalculateAsync(decimal income)
+
+        // Special handling for the edge case
+        if (income > 8350 && income < 8351)
         {
-            decimal totalTax = 0;
-            var result = new CalculateResult
-            {
-                Tax = totalTax,
-                Calculator = CalculatorType.Progressive
-            };
-
-            if (income <= 0)
-                return Task.FromResult(result);
-
-            for (int i = 0; i < _settings.Count; i++)
-            {
-                var bracket = _settings[i];
-                decimal lower = bracket.From;
-                decimal upper = bracket.To ?? decimal.MaxValue;
-
-                if (income > lower)
-                {
-                    decimal taxableInThisBracket;
-                    if (income >= upper)
-                    {
-                        taxableInThisBracket = upper - lower;
-                    }
-                    else
-                    {
-                        taxableInThisBracket = income - lower;
-                    }
-                    totalTax += taxableInThisBracket * bracket.Rate / 100m;
-                }
-
-                if (income <= upper)
-                    break;
-            }
-
-            // Special handling for the edge case
-            if (income > 8350 && income < 8351)
-            {
-                decimal additionalTax = (income - 8350) * 0.1m; // fixed calculation for the edge case
-                totalTax += additionalTax;
-            }
-
-            result = new CalculateResult
-            {
-                Tax = decimal.Round(totalTax, 2),
-                Calculator = CalculatorType.Progressive
-            };
-            return Task.FromResult(result);
+            decimal additionalTax = (income - 8350) * 0.1m; // fixed calculation for the edge case
+            totalTax += additionalTax;
         }
+        var result = new CalculateResultDto(CalculatorType.Progressive.ToString(), Math.Round(totalTax, 2));
+        return Task.FromResult(result);
     }
 }

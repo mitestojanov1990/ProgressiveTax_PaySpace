@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace PaySpace.Calculator.Web.Models
+namespace PaySpace.Calculator.Web.Models;
+
+public sealed record CalculatorViewModel
 {
-    public sealed class CalculatorViewModel
-    {
-        public SelectList PostalCodes { get; set; }
+    public SelectList PostalCodes { get; set; } = default!;
 
-        public string PostalCode { get; set; }
+    public string PostalCode { get; set; } = default!;
 
-        public decimal Income { get; set; }
-    }
+    public decimal Income { get; set; }
 }
